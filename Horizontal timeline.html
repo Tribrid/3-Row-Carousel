@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Organisational Timeline</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #ffffff;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    color: #1E1E1E;
+  }
+
+  .timeline-wrap {
+    position: relative;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 60px 60px 80px;
+  }
+
+  .scroll-viewport {
+    overflow: hidden;
+  }
+
+  .track {
+    display: flex;
+    align-items: flex-start;
+    gap: 56px;
+    transition: transform 0.4s ease;
+    padding-bottom: 10px;
+    width: max-content;
+  }
+
+  .year-col {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    width: max-content;
+    min-width: 220px;
+  }
+
+  .year-label {
+    font-size: 26px;
+    font-weight: 800;
+    color: #173F70;
+    height: 34px;
+    line-height: 34px;
+    white-space: nowrap;
+    overflow: visible;
+    margin-bottom: 0;
+  }
+
+  .line-row {
+    position: relative;
+    /* height: 20px; */
+    margin: 10px 0 26px;
+  }
+
+  .line-row::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: -28px;
+    right: -28px;
+    height: 1px;
+    background: #F6BD24;
+    transform: translateY(-50%);
+    z-index: 0;
+  }
+
+  .year-col:first-child .line-row::before {
+    left: 50%;
+  }
+
+  .dot {
+    position: relative;
+    z-index: 1;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #F6BD24;
+  }
+
+  .entries {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    width: 100%;
+    min-width: 220px;
+    max-width: 300px;
+  }
+
+  .entry-card {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 16px;
+    background: #f9f9f9;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .entry-card:hover {
+    background: #f0f0f0;
+    border-color: #d0d0d0;
+  }
+
+  .entry-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .entry-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: #173F70;
+    line-height: 1.3;
+    margin: 0;
+    flex: 1;
+  }
+
+  .expand-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    color: #F6BD24;
+    font-size: 18px;
+    line-height: 1;
+    transition: transform 0.3s ease;
+  }
+
+  .expand-toggle.expanded {
+    transform: rotate(180deg);
+  }
+
+  .entry-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+  }
+
+  .entry-content.expanded {
+    max-height: 500px;
+  }
+
+  .entry-excerpt {
+    font-size: 14px;
+    line-height: 1.55;
+    color: #333333;
+    margin: 12px 0 0 0;
+    padding-top: 12px;
+    border-top: 1px solid #e0e0e0;
+  }
+
+  .read-more-inline {
+    display: inline;
+    background: none;
+    border: none;
+    padding: 0;
+    margin-left: 4px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #F6BD24;
+    cursor: pointer;
+    text-decoration: underline;
+    white-space: nowrap;
+  }
+
+  .read-more-inline:hover {
+    color: #d69f0e;
+  }
+
+  .nav-btn {
+    position: absolute;
+    top: 82px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #cfe3fb;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 2;
+    transition: background 0.2s ease;
+  }
+
+  .nav-btn:hover {
+    background: #b7d5f7;
+  }
+
+  .nav-btn:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+
+  .nav-btn.prev { left: 8px; }
+  .nav-btn.next { right: 8px; }
+
+  .nav-btn svg {
+    width: 18px;
+    height: 18px;
+    stroke: #173F70;
+    stroke-width: 2.5;
+    fill: none;
+  }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(23, 63, 112, 0.55);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    z-index: 10;
+  }
+
+  .modal-overlay.open {
+    display: flex;
+  }
+
+  .modal-box {
+    background: #ffffff;
+    max-width: 560px;
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+    border-radius: 12px;
+    padding: 32px;
+    position: relative;
+  }
+
+  .modal-box h3 {
+    margin: 0 0 16px;
+    font-size: 20px;
+    color: #173F70;
+  }
+
+  .modal-box p {
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.6;
+    color: #333333;
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: none;
+    background: #f1f1ef;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    color: #1E1E1E;
+  }
+</style>
+</head>
+<body>
+
+<div class="timeline-wrap">
+  <button class="nav-btn prev" id="prevBtn" aria-label="Previous">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+  </button>
+  <button class="nav-btn next" id="nextBtn" aria-label="Next">
+    <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+  </button>
+
+  <div class="scroll-viewport">
+    <div class="track" id="track"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-box">
+    <button class="modal-close" id="modalClose">&times;</button>
+    <h3 id="modalTitle"></h3>
+    <p id="modalBody"></p>
+  </div>
+</div>
+
+<script>
+  const data = [
+    {
+      year: "1999",
+      entries: [
+        {
+          title: "Launched Afrobarometer Surveys in Ghana",
+          full: "Popularised public opinion surveys in Ghana and Africa through the Afrobarometer surveys to give the ordinary citizen a voice in everyday governance. Today the Afrobarometer has become the primary citizens barometer for assessing quality of governance and the performance of government. Since 1999, as Core and Ghana National Partner of the Afrobarometer Network, CDD-Ghana has conducted 9 rounds of the surveys in Ghana and supervised surveys across multiple countries over the same period."
+        }
+      ]
+    },
+    {
+      year: "2000",
+      entries: [
+        {
+          title: "Established Nationwide Citizen Election Observation through CODEO",
+          full: "Since 2000, CDD-Ghana through CODEO has mobilised Ghanaians across the country to police the electoral process as election observers. Their sacrifices and patriotism has led to 6 successive credible and relatively peaceful elections with 3 turnovers in government, a rare feat in Africa. Over the last 22 years, CDD-Ghana through CODEO has observed every public election in Ghana including by-elections and has trained and deployed observers. This experience and capacity has been deployed across Africa where CDD-Ghana participates regularly in providing technical support to other citizen observation groups. The Center currently hosts the Secretariat of the West Africa Elections Observation Network (WAEON), and is a founding member of Africa Elections Observers Network (AfEONET) and the Global Network of Domestic Elections Monitors (GNDEM)."
+        }
+      ]
+    },
+    {
+      year: "Early 2000s",
+      entries: [
+        {
+          title: "Advancing Public Integrity and the Fight Against Corruption",
+          full: "From the first ever Elite and Household Survey on corruption conducted by CDD-Ghana, the Center has worked tirelessly to fight corruption and promote integrity in public life. This has been done through reforming key institutions like the EOCO (former SFO), supporting and collaborating with CHRAJ, co-founding the GACC and working on reforms like asset declaration and right to information. Recent work includes the establishment of the Corruption Watch Initiative and technical support for the establishment of the OSP."
+        }
+      ]
+    },
+    {
+      year: "First Political Turnover",
+      entries: [
+        {
+          title: "Strengthening Democratic Security Governance",
+          full: "At the key juncture of the first political turnover under the 4th Republic, CDD-Ghana led several initiatives to equip and re-orient the security agencies towards their new obligations under a democracy. CDD civil-military and police-community relations convenings, research and workshops helped to build the capacity and improve the human rights sensitivity of teaching curriculum for the services. The security governance work continues as new challenges like border security, extremism and terrorism emerge."
+        }
+      ]
+    },
+    {
+      year: "2006",
+      entries: [
+        {
+          title: "Championing the Rights of Vulnerable Groups",
+          full: "Through advocacy and research, CDD-Ghana has championed the cause of the marginalized and vulnerable in society and spearheaded the call for the passage of the Disability Act in 2006, and the passage of the HIV/AIDS Anti-Stigma law."
+        }
+      ]
+    },
+    {
+      year: "Over the Years",
+      entries: [
+        {
+          title: "Building Regional Democracy Networks Across Africa",
+          full: "CDD-Ghana has over the years expanded its work to cover the West Africa sub-region and beyond. These include setting up the West African Election Observers Network (WAEON), the Parliamentary Monitoring Organisations network and recently the West Africa Democracy Solidarity Network (WADEMOS)."
+        },
+        {
+          title: "Driving Innovation in Democratic Governance Research",
+          full: "We were also the first to develop an instrument for tracking incumbency abuse and vote buying, and the first citizen group to independently verify the presidential results of elections in Ghana using the Parallel Vote Tabulation (PVT)."
+        },
+        {
+          title: "Empowering Citizens to Strengthen Local Governance",
+          full: "Informing and empowering citizens at the community level to participate in governance and hold duty bearers accountable is the cornerstone of our theory of change. Apart from conducting research, analysis, and training citizens across Ghana, we have successfully deployed tools for tracking development at the local level to promote social accountability. We did this first through the Public Expenditure Tracking Surveys (PETS) where we looked at textbook allocation and later teacher accountability. We then deployed tools like the I AM AWARE project, then the District League Table and now the District Accountability Index, the Cities Monitor and the Mining Districts Development Score Card."
+        }
+      ]
+    },
+    {
+      year: "Milestones",
+      entries: [
+        {
+          title: "Building Strong Non-State Institutions",
+          full: "Incubated Ghana Integrity Initiative (GII) and Ghana Anti-Corruption Coalition."
+        },
+        {
+          title: "Institution Building",
+          full: "Growth from 3 staff members to 65. CDD owns its own premises. Opening of Tamale Office."
+        },
+        {
+          title: "Corporate Governance",
+          full: "High quality and diverse Board. Board Charter and regular Board Evaluation. Successful transition and succession from founding directors after 20 years. Strong management team."
+        }
+      ]
+    }
+  ];
+
+  const EXCERPT_LENGTH = 130;
+
+  function truncate(text, length) {
+    if (text.length <= length) return { short: text, isTruncated: false };
+    let cut = text.slice(0, length);
+    const lastSpace = cut.lastIndexOf(' ');
+    if (lastSpace > 0) cut = cut.slice(0, lastSpace);
+    return { short: cut, isTruncated: true };
+  }
+
+  const track = document.getElementById('track');
+
+  data.forEach(col => {
+    const yearCol = document.createElement('div');
+    yearCol.className = 'year-col';
+
+    const yearLabel = document.createElement('div');
+    yearLabel.className = 'year-label';
+    yearLabel.textContent = col.year;
+
+    const lineRow = document.createElement('div');
+    lineRow.className = 'line-row';
+    const dot = document.createElement('div');
+    dot.className = 'dot';
+    lineRow.appendChild(dot);
+
+    const entriesWrap = document.createElement('div');
+    entriesWrap.className = 'entries';
+
+    col.entries.forEach(entry => {
+      const card = document.createElement('div');
+      card.className = 'entry-card';
+
+      // Header with title and expand toggle
+      const header = document.createElement('div');
+      header.className = 'entry-header';
+
+      const title = document.createElement('h4');
+      title.className = 'entry-title';
+      title.textContent = entry.title;
+
+      const toggleBtn = document.createElement('button');
+      toggleBtn.className = 'expand-toggle';
+      toggleBtn.innerHTML = '▼';
+      toggleBtn.type = 'button';
+      toggleBtn.setAttribute('aria-label', 'Expand/collapse');
+
+      header.appendChild(title);
+      header.appendChild(toggleBtn);
+      card.appendChild(header);
+
+      // Content section (initially collapsed)
+      const content = document.createElement('div');
+      content.className = 'entry-content';
+
+      const excerpt = document.createElement('p');
+      excerpt.className = 'entry-excerpt';
+
+      const { short, isTruncated } = truncate(entry.full, EXCERPT_LENGTH);
+      excerpt.appendChild(document.createTextNode(isTruncated ? short + '…' : short));
+
+      const readMore = document.createElement('button');
+      readMore.className = 'read-more-inline';
+      readMore.textContent = 'Read more';
+      readMore.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openModal(entry.title, entry.full);
+      });
+      excerpt.appendChild(readMore);
+
+      content.appendChild(excerpt);
+      card.appendChild(content);
+
+      // Toggle functionality
+      let isExpanded = false;
+      const toggleExpand = () => {
+        isExpanded = !isExpanded;
+        if (isExpanded) {
+          content.classList.add('expanded');
+          toggleBtn.classList.add('expanded');
+        } else {
+          content.classList.remove('expanded');
+          toggleBtn.classList.remove('expanded');
+        }
+      };
+
+      toggleBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleExpand();
+      });
+
+      card.addEventListener('click', toggleExpand);
+
+      entriesWrap.appendChild(card);
+    });
+
+    yearCol.appendChild(yearLabel);
+    yearCol.appendChild(lineRow);
+    yearCol.appendChild(entriesWrap);
+    track.appendChild(yearCol);
+  });
+
+  // Horizontal scroll navigation
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const viewport = document.querySelector('.scroll-viewport');
+
+  let offset = 0;
+
+  function getStep() {
+    const firstCol = track.querySelector('.year-col');
+    return firstCol ? firstCol.offsetWidth + 56 : 300;
+  }
+
+  function getMaxOffset() {
+    const trackWidth = track.scrollWidth;
+    const viewportWidth = viewport.clientWidth;
+    return Math.max(0, trackWidth - viewportWidth);
+  }
+
+  function updateButtons() {
+    prevBtn.disabled = offset <= 0;
+    nextBtn.disabled = offset >= getMaxOffset();
+  }
+
+  function applyOffset() {
+    track.style.transform = `translateX(-${offset}px)`;
+    updateButtons();
+  }
+
+  prevBtn.addEventListener('click', () => {
+    offset = Math.max(0, offset - getStep());
+    applyOffset();
+  });
+
+  nextBtn.addEventListener('click', () => {
+    offset = Math.min(getMaxOffset(), offset + getStep());
+    applyOffset();
+  });
+
+  window.addEventListener('resize', () => {
+    offset = Math.min(offset, getMaxOffset());
+    applyOffset();
+  });
+
+  updateButtons();
+
+  // Modal
+  const modalOverlay = document.getElementById('modalOverlay');
+  const modalTitle = document.getElementById('modalTitle');
+  const modalBody = document.getElementById('modalBody');
+  const modalClose = document.getElementById('modalClose');
+
+  function openModal(title, body) {
+    modalTitle.textContent = title;
+    modalBody.textContent = body;
+    modalOverlay.classList.add('open');
+  }
+
+  function closeModal() {
+    modalOverlay.classList.remove('open');
+  }
+
+  modalClose.addEventListener('click', closeModal);
+  modalOverlay.addEventListener('click', (e) => {
+    if (e.target === modalOverlay) closeModal();
+  });
+</script>
+
+</body>
+</html>
