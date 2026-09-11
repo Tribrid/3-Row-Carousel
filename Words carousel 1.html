@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Text Carousel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: auto;
+    overflow-x: hidden;
+    background: #ffffff;
+    font-family: "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  }
+
+  .carousel-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+    padding: 60px 0;
+    overflow: hidden;
+  }
+
+  .row {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 80px, #000 calc(100% - 80px), transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0, #000 80px, #000 calc(100% - 80px), transparent 100%);
+  }
+
+  .track {
+    display: flex;
+    width: max-content;
+    gap: 0;
+    padding: 0 7px;
+  }
+
+  .row.ltr .track {
+    animation: scroll-ltr 40s linear infinite;
+  }
+
+  .row.rtl .track {
+    animation: scroll-rtl 40s linear infinite;
+  }
+
+  .row:hover .track {
+    animation-play-state: paused;
+  }
+
+  .pill {
+    flex: 0 0 auto;
+    padding: 8px 24px;
+    color: #145DA0;
+    font-family: "Manrope", sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    white-space: nowrap;
+    line-height: 1.2;
+    border-right: 1px solid #F6BD24;
+  }
+
+  /* Row 1 starts scrolled left by half its width so it can move right (LTR) seamlessly */
+  @keyframes scroll-ltr {
+    from { transform: translateX(-50%); }
+    to   { transform: translateX(0%); }
+  }
+
+  /* Row moves right to left */
+  @keyframes scroll-rtl {
+    from { transform: translateX(0%); }
+    to   { transform: translateX(-50%); }
+  }
+</style>
+</head>
+<body>
+
+<div class="carousel-wrap">
+
+  <!-- Row 1: left to right -->
+  <div class="row ltr">
+    <div class="track" id="track1"></div>
+  </div>
+
+  <!-- Row 2: right to left (opposite) -->
+  <div class="row rtl">
+    <div class="track" id="track2"></div>
+  </div>
+
+  <!-- Row 3: left to right (opposite of row 2) -->
+  <div class="row ltr">
+    <div class="track" id="track3"></div>
+  </div>
+
+</div>
+
+<script>
+  const row1Items = [
+    "Democracy promotion",
+    "Electoral integrity",
+    "Public accountability and Anti-corruption",
+    "Constitutional reform",
+    "Rule of law and human rights",
+    "Local governance and decentralisation"
+  ];
+
+  const row2Items = [
+    "Public service delivery",
+    "Social inclusion and Gender Equity",
+    "Peace and security",
+    "Citizen participation",
+    "Youth leadership, empowerment and participation"
+  ];
+
+  const row3Items = [
+    "Political and campaign financing",
+    "Democracy resilience",
+    "Regional and Continental governance",
+    "Environment, Climate and Natural Resource Governance",
+    "Media Independence, Professionalism and Accountability"
+  ];
+
+  function buildTrack(elementId, items) {
+    const track = document.getElementById(elementId);
+    // Duplicate the items so the loop is seamless
+    const doubled = items.concat(items);
+    doubled.forEach(text => {
+      const pill = document.createElement('div');
+      pill.className = 'pill';
+      pill.textContent = text;
+      track.appendChild(pill);
+    });
+  }
+
+  buildTrack('track1', row1Items);
+  buildTrack('track2', row2Items);
+  buildTrack('track3', row3Items);
+</script>
+
+</body>
+</html>
