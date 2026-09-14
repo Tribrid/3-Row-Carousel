@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Our Partners</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 60px 0;
+    background: #ffffff;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  }
+
+  .carousel-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .row {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(to right, transparent 0, #000 80px, #000 calc(100% - 80px), transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0, #000 80px, #000 calc(100% - 80px), transparent 100%);
+  }
+
+  .track {
+    display: flex;
+    width: max-content;
+    gap: 14px;
+    padding: 0 7px;
+  }
+
+  .row.ltr .track {
+    animation: scroll-ltr 45s linear infinite;
+  }
+
+  .row.rtl .track {
+    animation: scroll-rtl 45s linear infinite;
+  }
+
+  .row:hover .track {
+    animation-play-state: paused;
+  }
+
+  .logo-pill {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    height: 64px;
+    padding: 12px 24px;
+    background: #f1f1ef;
+    border-radius: 999px;
+    text-decoration: none;
+    transition: background 0.2s ease;
+  }
+
+  .logo-pill:hover {
+    background: #e6e6e3;
+  }
+
+  .logo-pill img {
+    height: 24px;
+    width: 24px;
+    max-width: 24px;
+    object-fit: contain;
+    display: block;
+    border-radius: 4px;
+  }
+
+  .logo-pill .name-text {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: #1E1E1E;
+    white-space: nowrap;
+  }
+
+  /* .arrow-icon {
+    display: inline-block;
+    transform: rotate(-45deg);
+    color: #f6bd24;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1;
+  } */
+
+  /* Row 1 starts scrolled left by half its width so it can move right (LTR) seamlessly */
+  @keyframes scroll-ltr {
+    from { transform: translateX(-50%); }
+    to   { transform: translateX(0%); }
+  }
+
+  /* Row moves right to left */
+  @keyframes scroll-rtl {
+    from { transform: translateX(0%); }
+    to   { transform: translateX(-50%); }
+  }
+</style>
+</head>
+<body>
+
+<div class="carousel-wrap">
+
+  <!-- Row 1: left to right -->
+  <div class="row ltr">
+    <div class="track" id="track1"></div>
+  </div>
+
+  <!-- Row 2: right to left (opposite) -->
+  <div class="row rtl">
+    <div class="track" id="track2"></div>
+  </div>
+
+  <!-- Row 3: left to right (opposite of row 2) -->
+  <div class="row ltr">
+    <div class="track" id="track3"></div>
+  </div>
+
+</div>
+
+<script>
+  // domain is used to pull a favicon/logo via Google's free favicon service
+  // href is where the logo click opens (new tab)
+  const row1Partners = [
+    { name: "Hewlett Foundation", domain: "hewlett.org", href: "https://hewlett.org" },
+    { name: "OSF", domain: "opensocietyfoundations.org", href: "https://www.opensocietyfoundations.org" },
+    { name: "Ford Foundation", domain: "fordfoundation.org", href: "https://www.fordfoundation.org" },
+    { name: "NDI", domain: "ndi.org", href: "https://www.ndi.org" },
+    { name: "EU", domain: "europa.eu", href: "https://europa.eu" }
+  ];
+
+  const row2Partners = [
+    { name: "GIZ", domain: "giz.de", href: "https://www.giz.de" },
+    { name: "UNDP", domain: "undp.org", href: "https://www.undp.org" },
+    { name: "FCDO", domain: "gov.uk", href: "https://www.gov.uk/government/organisations/foreign-commonwealth-development-office" },
+    { name: "Danish Embassy", domain: "um.dk", href: "https://um.dk" },
+    { name: "Switzerland Embassy", domain: "eda.admin.ch", href: "https://www.eda.admin.ch" }
+  ];
+
+  const row3Partners = [
+    { name: "Australia High Commission", domain: "dfat.gov.au", href: "https://www.dfat.gov.au" },
+    { name: "SIDA Sweden", domain: "sida.se", href: "https://www.sida.se" },
+    { name: "NED", domain: "ned.org", href: "https://www.ned.org" },
+    { name: "IDRC", domain: "idrc-crdi.ca", href: "https://idrc-crdi.ca" },
+    { name: "Netherlands Embassy", domain: "government.nl", href: "https://www.government.nl" }
+  ];
+
+  function buildTrack(elementId, partners) {
+    const track = document.getElementById(elementId);
+    const doubled = partners.concat(partners);
+    doubled.forEach(p => {
+      const link = document.createElement('a');
+      link.className = 'logo-pill';
+      link.href = p.href;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      link.setAttribute('aria-label', p.name);
+
+      const img = document.createElement('img');
+      // Google's favicon service: no API key required, unlike the now-retired Clearbit Logo API
+      img.src = `https://www.google.com/s2/favicons?domain=${p.domain}&sz=128`;
+      img.alt = p.name;
+      img.loading = 'lazy';
+
+      img.onerror = function () {
+        img.style.display = 'none';
+      };
+
+      const nameText = document.createElement('span');
+      nameText.className = 'name-text';
+      nameText.textContent = p.name;
+
+      const arrow = document.createElement('span');
+    //   arrow.className = 'arrow-icon';
+    //   arrow.textContent = '→';
+      arrow.setAttribute('aria-hidden', 'true');
+
+      link.appendChild(img);
+      link.appendChild(nameText);
+      link.appendChild(arrow);
+      track.appendChild(link);
+    });
+  }
+
+  buildTrack('track1', row1Partners);
+  buildTrack('track2', row2Partners);
+  buildTrack('track3', row3Partners);
+</script>
+
+</body>
+</html>
